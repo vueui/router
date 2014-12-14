@@ -39,6 +39,8 @@ domReady(function () {
         },
 
         options: {
+			vTransition: 'fade-up',
+			transitionMode: 'out-in',
             keepAlive: true
         }
     });
