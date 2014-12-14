@@ -1,16 +1,13 @@
 
 module.exports = {
-    template: '<pre>{{params|json}}</pre><h1>Welcome to the dashboard</h1>',
-    created: function () {
-        console.log('Created my component');
-    },
+    template: '<pre>{{params|json}}</pre><h1>Welcome back {{params.username}}!</h1>',
     methods: {
-        enter: function (ctx, next) {
-            console.log('YESSS');
+        enter: function (context) {
+            console.log('Entering the dashboard ...');
         },
-        leave: function (ctx, next) {
+        leave: function (context, next) {
             console.log('Leaving the dashboard...');
             next();
         }
     }
-}
+};

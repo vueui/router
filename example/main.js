@@ -15,7 +15,7 @@ domReady(function () {
 
         routes: {
             '/': 'home',
-            '/dashboard/:first/:last?': 'dashboard'
+            '/dashboard/:username/:name?': 'dashboard'
         },
 
         components: require('./pages'),

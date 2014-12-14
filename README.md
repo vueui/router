@@ -16,28 +16,27 @@ Then use it:
 var Vue = require('vue')
 var router = require('vueui-router')
 
-Vue.use(router)
+Vue.use(router, {
+    // Page.js options
+})
 
 var Router = Vue.component('ui-router')
 
 var app = new Router({
     routes: {
-        '/dashboard': 'dashboard'
+        '/dashboard/:username': 'dashboard'
     }
 }).$mount('#app')
 
 
 Vue.component('dashboard', {
-    template: '',
-    data: {
-        ...
-    }
+    template: '<h1>Welcome back {{params.username}}!</h1>'
 })
 
 ```
 
-#### ```Router``` options object
-You can pass an optional ```options``` object as an option when instantiating the Router. Those camel cased props will all added to
+#### Router ```options``` object
+You can pass an optional ```options``` option when instantiating the Router. These camel cased properties will all added to
 the dynamic component that is switching the route components internally.
 
 ```js
@@ -55,4 +54,4 @@ new Router({
 ```
 
 #### Context params
-The params of a route(if there is any) can be accessed in a route component using ```$parent.params```
+The params of a route(if there is any) can be accessed in a route component in the ```$data.params``` keypath (or just ```params```)
