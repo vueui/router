@@ -34,7 +34,7 @@ exports.registerRoute = function (path, componentId) {
 
     /**
      * Sets the active page to the componentId assigned to this path,
-     * and calls the 'enter' middleware on the view model instance if it is specified
+     * and calls the 'enter' hook on the view model instance if it is specified
      */
 
     function onEnter(ctx, next) {
@@ -46,7 +46,7 @@ exports.registerRoute = function (path, componentId) {
             setParams(pageVm, ctx.params);
 
             if(isFunction(pageVm.enter)) {
-                pageVm.enter(ctx, next)
+                pageVm.enter(ctx)
             }
         })
     }
