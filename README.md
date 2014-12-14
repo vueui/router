@@ -28,9 +28,9 @@ Vue.component('dashboard', {
 
 ```
 
-#### Router options object
+#### ```Router``` options object
 You can pass an optional ```options``` object as an option when instantiating the Router. These will all added to
-the dynamic component that is controlling the views.
+the dynamic component that is switching the route components.
 
 ```js
 new Router({
