@@ -3,7 +3,9 @@
  * Component dependencies
  */
 
-var _ = require('vue').util;
+var Vue = require('vue');
+var _ = Vue.util;
+var page = require('page');
 var not = require('101/not');
 var isObject = require('101/is-object');
 var dasherize = require('dasherize');
@@ -23,8 +25,26 @@ module.exports = {
             _.warn('routes hash must be set properly in the Router component');
         }
 
+
+        /**
+         * Parse the query
+         */
+        var qs = require('qs');
+
+        page('*', function parse(ctx, next) {
+            Vue.nextTick(function () {
+                ctx.query = qs.parse(window.location.search.slice(1));
+                next()
+            })
+        });
+
+
+        /**
+         * Register the listeners for each path(route)
+         */
+
         Object.keys(routes).forEach(function (path) {
-            var componentId = routes[path]
+            var componentId = routes[path];
             router.registerRoute(path, componentId)
         })
     },

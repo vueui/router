@@ -44,6 +44,7 @@ exports.registerRoute = function (path, componentId) {
             var pageVm = findPageVm();
 
             setParams(pageVm, ctx.params);
+            setQueries(pageVm, ctx.query);
 
             if(isFunction(pageVm.enter)) {
                 pageVm.enter(ctx)
@@ -90,5 +91,13 @@ exports.registerRoute = function (path, componentId) {
         Object.keys(params).forEach(function (key) {
             pageVm.params.$add(key, params[key]);
         });
+    }
+
+    function setQueries(pageVm, query) {
+        pageVm.$set('query', {});
+
+        Object.keys(query).forEach(function (key) {
+            pageVm.query.$add(key, query[key]);
+        })
     }
 };
