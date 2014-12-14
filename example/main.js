@@ -15,7 +15,7 @@ domReady(function () {
 
         routes: {
             '/': 'home',
-            '/dashboard/:name': 'dashboard'
+            '/dashboard/:first/:last?': 'dashboard'
         },
 
         components: {
@@ -39,9 +39,7 @@ domReady(function () {
         },
 
         options: {
-            transition: '',
-            keepAlive: false,
-            waitFor: ''
+            keepAlive: true
         }
     });
 

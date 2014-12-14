@@ -4,67 +4,51 @@
  */
 
 var _ = require('vue').util;
-var page = require('page');
 var not = require('101/not');
 var isObject = require('101/is-object');
+var dasherize = require('dasherize');
 
 
 /**
  * app-router definition
  */
 
-exports.created = function () {
-    var router = this;
-    var routes = this.$options.routes;
+module.exports = {
 
-    if(not(isObject)(routes)) {
-        _.warn('routes hash must be set properly in the Router component');
-    }
+    created: function () {
+        var router = this;
+        var routes = this.$options.routes;
 
-    Object.keys(routes).forEach(registerRoute)
+        if(not(isObject)(routes)) {
+            _.warn('routes hash must be set properly in the Router component');
+        }
 
-    /**
-     * Sets the component which was specified in the routes hash to the currentPage
-     *
-     * @param path
-     */
+        Object.keys(routes).forEach(function (path) {
+            var componentId = routes[path]
+            router.registerRoute(path, componentId)
+        })
+    },
 
-    function registerRoute(path) {
-        var componentId = routes[path];
+    beforeCompile: function () {
+        var router = this;
+        var attrs = dasherize(this.$options.options || {});
+        var $component = router.$el.querySelector('div');
 
-        page(path, function (ctx, next) {
-            setParams(ctx.params);
-            router.currentPage = componentId;
+        Object.keys(attrs).forEach(function (attr) {
+            var value = attrs[attr];
+            $component.setAttribute(attr, value);
         });
-    }
+    },
 
-    /**
-     * Updates the 'params' object on the router
-     *
-     * @param params {Object} The context params of the newly entered route
-     */
+    data: function () {
+        return {
+            currentPage: 'home',
+            params: {}
+        }
+    },
 
-    function setParams(params) {
-        router.$set('params', {});
+    methods: require('./methods'),
 
-        Object.keys(params).forEach(function (key) {
-            router.params.$add(key, params[key]);
-        });
-    }
+    template: '<div v-component="{{currentPage}}" v-ref="page"></div>'
 
 };
-
-exports.data = function () {
-    return {
-        currentPage: 'home',
-        params: {}
-    }
-};
-
-exports.methods = {
-    navigate: function (path) {
-        page(path)
-    }
-};
-
-exports.template = '<div v-component="{{currentPage}}" keep-alive v-ref="page"></div>'
