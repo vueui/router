@@ -30,4 +30,5 @@ domReady(function () {
     app.$mount('#app');
 
     window.Vue = Vue;
+    window.page = require('page');
 });

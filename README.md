@@ -55,3 +55,7 @@ new Router({
 
 #### Context params
 The params of a route(if there is any) can be accessed in a route component in the ```$data.params``` keypath (or just ```params```)
+
+#### Context query
+The [```qs```](https://github.com/hapijs/qs) module is included to parse the ```search``` property of the location, ie the querystring,
+and just like with params, you can access the queries in the ```$data.query``` keypath.
