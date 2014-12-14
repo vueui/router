@@ -18,25 +18,7 @@ domReady(function () {
             '/dashboard/:first/:last?': 'dashboard'
         },
 
-        components: {
-            home: {
-                template: '<h1>Welcome to the home page</h1>',
-                created: function () {
-                    console.log('Created my component');
-                },
-                methods: {
-                    enter: function (ctx, next) {
-                        console.log('Welcome to the home page');
-                    }
-                }
-            },
-            dashboard: {
-                template: '<pre>{{$parent.params|json}}</pre><h1>Welcome to the dashboard</h1>',
-                created: function () {
-                    console.log('Created my component');
-                }
-            }
-        },
+        components: require('./pages'),
 
         options: {
 			vTransition: 'fade-up',
