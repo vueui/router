@@ -42,8 +42,7 @@ module.exports = {
 
     data: function () {
         return {
-            currentPage: 'home',
-            params: {}
+            currentPage: 'home'
         }
     },
 
