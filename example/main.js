@@ -17,7 +17,19 @@ domReady(function () {
             '/': 'home',
             '/dashboard/:username/:name?': {
                 componentId: 'dashboard',
-                title: '{{params.username}}\'s dashboard'
+                title: '{{params.username}}\'s dashboard',
+                beforeEnter: [ 'isAuthenticated', 'isAuthorized' ]
+            }
+        },
+
+        methods: {
+            isAuthenticated: function (ctx, next) {
+                console.log('Is authenticated')
+                next()
+            },
+            isAuthorized: function (ctx, next) {
+                console.log('Is authorized')
+                next()
             }
         },
 

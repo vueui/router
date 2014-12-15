@@ -1,3 +1,8 @@
+
+/**
+ * Constructor dependencies
+ */
+
 var page       = require('page'),
     qs         = require('qs'),
     Vue        = require('vue'),
@@ -6,7 +11,14 @@ var page       = require('page'),
     set        = require('101/set'),
     isString   = require('101/is-string'),
     isFunction = require('101/is-function'),
-    isObject   = require('101/is-object')
+    isObject   = require('101/is-object'),
+    passAny    = require('101/pass-any'),
+    isArray    = require('lodash.isarray')
+
+
+/**
+ * Router constructor
+ */
 
 var Router = module.exports = function (vm, routes) {
     var router = this
@@ -43,6 +55,25 @@ Router.prototype.registerRoute = function (path, definition) {
         componentId = definition
     }
 
+    if (passAny(isString, isArray)(beforeEnter)) {
+        var middleware = isString(beforeEnter)
+            ? [ beforeEnter ]
+            : beforeEnter
+
+        middleware
+            .filter(methodExists)
+            .map(function (methodName) {
+                return pluck(routerVm, methodName)
+            })
+            .forEach(function (method) {
+                page(path, method)
+            });
+
+        function methodExists(method) {
+            return isFunction(pluck(routerVm, method))
+        }
+    }
+
     page(path, function (ctx, next) {
         routerVm.currentPage = componentId
 
@@ -53,7 +84,7 @@ Router.prototype.registerRoute = function (path, definition) {
             router.saveQueries(ctx.query)
 
             // Set the document title if needed
-            if(isString(title)) {
+            if (isString(title)) {
                 document.title = routerVm.$interpolate(title)
             }
 

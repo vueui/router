@@ -1,13 +1,14 @@
+
 /**
  * Component dependencies
  */
 
-var Vue = require('vue')
-var _ = Vue.util
-var not = require('101/not')
-var isObject = require('101/is-object')
-var dasherize = require('dasherize')
-var page = require('page')
+var Vue       = require('vue'),
+    _         = Vue.util,
+    not       = require('101/not'),
+    isObject  = require('101/is-object'),
+    dasherize = require('dasherize'),
+    page      = require('page')
 
 var Router = require('./router')
 
@@ -19,10 +20,9 @@ var Router = require('./router')
 module.exports = {
 
     created: function () {
-        var vm = this
         var routes = this.$options.routes || {}
 
-        if(not(isObject)(routes)) {
+        if (not(isObject)(routes)) {
             _.warn('routes hash must be set properly in the Router component')
         }
 
@@ -43,14 +43,14 @@ module.exports = {
     data: function () {
         return {
             currentPage: 'home',
-            params: {},
-            query: {}
+            params     : {},
+            query      : {}
         }
     },
 
     methods: {
         navigate: function (path) {
-            require('page')(path)
+            page(path)
         }
     },
 
