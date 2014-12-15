@@ -2,76 +2,77 @@ var page       = require('page'),
     qs         = require('qs'),
     Vue        = require('vue'),
     find       = require('101/find'),
-    isFunction = require('101/is-function')
+    pluck      = require('101/pluck'),
+    set        = require('101/set'),
+    isString   = require('101/is-string'),
+    isFunction = require('101/is-function'),
+    isObject   = require('101/is-object')
 
-var Router = module.exports = function (vm) {
+var Router = module.exports = function (vm, routes) {
     var router = this
 
-    router.vm = vm
+    set(router, 'vm', vm)
 
     page('*', function (ctx, next) {
         Vue.nextTick(function () {
-            ctx.query = qs.parse(window.location.search.slice(1))
+            var query = qs.parse(window.location.search.slice(1))
 
-            router.saveQueries(ctx.query)
-            router.saveParams(ctx.params)
-
+            set(ctx, 'query', query)
             next()
         })
     })
-}
 
-
-Router.prototype.registerRoute = function (path, componentId) {
-    var router = this
-
-    page(path, function (ctx, next) {
-        router.onEnter(ctx, componentId)
+    Object.keys(routes).forEach(function (path) {
+        var definition = pluck(routes, path)
+        router.registerRoute(path, definition)
     })
 
-    page.exit(path, router.onExit)
 }
 
 
-/**
- * Sets the current page to the componentId assigned to this path,
- * and calls the 'enter' hook on the view model instance if it is defined
- */
-
-Router.prototype.onEnter = function (ctx, componentId) {
+Router.prototype.registerRoute = function (path, definition) {
     var router = this,
-        routerVm = this.vm
+        routerVm = this.vm,
+        componentId, title, beforeEnter
 
-    routerVm.currentPage = componentId
+    if (isObject(definition)) {
+        title = pluck(definition, 'title')
+        beforeEnter = pluck(definition, 'beforeEnter')
+        componentId = pluck(definition, 'componentId')
+    } else {
+        componentId = definition
+    }
 
-    Vue.nextTick(function () {
+    page(path, function (ctx, next) {
+        routerVm.currentPage = componentId
+
+        Vue.nextTick(function () {
+            var pageVm = router.findPageVm()
+
+            router.saveParams(ctx.params)
+            router.saveQueries(ctx.query)
+
+            // Set the document title if needed
+            if(isString(title)) {
+                document.title = routerVm.$interpolate(title)
+            }
+
+            if (isFunction(pageVm.enter)) {
+                pageVm.enter(ctx)
+            }
+        })
+    })
+
+    page.exit(path, function (ctx, next) {
         var pageVm = router.findPageVm()
 
-        router.saveParams(ctx.params, pageVm)
-        router.saveQueries(ctx.query, pageVm)
-
-        if(isFunction(pageVm.enter)) {
-            pageVm.enter(ctx)
+        if (isFunction(pageVm.leave)) {
+            pageVm.leave(ctx, next)
+        } else {
+            next()
         }
     })
 }
-
-
-/**
- * Calls the 'leave' middleware (if it is defined) on the view model
- * instance of the current page
- */
-
-Router.prototype.onExit = function (ctx, next) {
-    var pageVm = this.findPageVm()
-
-    if (isFunction(pageVm.leave)) {
-        pageVm.leave(ctx, next)
-    } else {
-        next()
-    }
-}
-
 
 /**
  * Finds the view model instance of the current page
@@ -87,8 +88,8 @@ Router.prototype.findPageVm = function () {
     })
 }
 
-Router.prototype.saveQueries = function (query, vm) {
-    vm = vm || this.vm
+Router.prototype.saveQueries = function (query) {
+    var vm = this.vm
 
     vm.$set('query', {})
 
@@ -97,8 +98,8 @@ Router.prototype.saveQueries = function (query, vm) {
     })
 }
 
-Router.prototype.saveParams = function (params, vm) {
-    vm = vm || this.vm
+Router.prototype.saveParams = function (params) {
+    var vm = this.vm
 
     vm.$set('params', {})
 

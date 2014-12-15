@@ -7,6 +7,7 @@ var _ = Vue.util
 var not = require('101/not')
 var isObject = require('101/is-object')
 var dasherize = require('dasherize')
+var page = require('page')
 
 var Router = require('./router')
 
@@ -19,19 +20,13 @@ module.exports = {
 
     created: function () {
         var vm = this
-        var routes = this.$options.routes
+        var routes = this.$options.routes || {}
 
         if(not(isObject)(routes)) {
             _.warn('routes hash must be set properly in the Router component')
         }
 
-        this.$router = new Router(this)
-
-        Object.keys(routes).forEach(function (path) {
-            var componentId = routes[path]
-
-            vm.$router.registerRoute(path, componentId)
-        })
+        this.$router = new Router(this, routes)
     },
 
     beforeCompile: function () {
@@ -47,10 +42,18 @@ module.exports = {
 
     data: function () {
         return {
-            currentPage: 'home'
+            currentPage: 'home',
+            params: {},
+            query: {}
         }
     },
 
-    template: '<div v-component="{{currentPage}}" v-ref="page"></div>'
+    methods: {
+        navigate: function (path) {
+            require('page')(path)
+        }
+    },
+
+    template: '<div v-component="{{currentPage}}" v-with="params: params, query: query"></div>'
 
 }

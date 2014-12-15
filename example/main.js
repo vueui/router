@@ -15,7 +15,10 @@ domReady(function () {
 
         routes: {
             '/': 'home',
-            '/dashboard/:username/:name?': 'dashboard'
+            '/dashboard/:username/:name?': {
+                componentId: 'dashboard',
+                title: '{{params.username}}\'s dashboard'
+            }
         },
 
         components: require('./pages'),
