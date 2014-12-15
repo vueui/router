@@ -1,73 +1,108 @@
+var page       = require('page'),
+    qs         = require('qs'),
+    Vue        = require('vue'),
+    find       = require('101/find'),
+    isFunction = require('101/is-function');
 
-/**
- * Component dependencies
- */
+var Router = module.exports = function (vm) {
+    var router = this;
 
-var Vue = require('vue');
-var _ = Vue.util;
-var page = require('page');
-var not = require('101/not');
-var isObject = require('101/is-object');
-var dasherize = require('dasherize');
+    router.vm = vm;
 
+    page('*', function (ctx, next) {
+        Vue.nextTick(function () {
+            ctx.query = qs.parse(window.location.search.slice(1));
 
-/**
- * app-router definition
- */
+            router.saveQueries(ctx.query);
+            router.saveParams(ctx.params);
 
-module.exports = {
-
-    created: function () {
-        var router = this;
-        var routes = this.$options.routes;
-
-        if(not(isObject)(routes)) {
-            _.warn('routes hash must be set properly in the Router component');
-        }
-
-
-        /**
-         * Parse the query
-         */
-        var qs = require('qs');
-
-        page('*', function parse(ctx, next) {
-            Vue.nextTick(function () {
-                ctx.query = qs.parse(window.location.search.slice(1));
-                next()
-            })
-        });
-
-
-        /**
-         * Register the listeners for each path(route)
-         */
-
-        Object.keys(routes).forEach(function (path) {
-            var componentId = routes[path];
-            router.registerRoute(path, componentId)
+            next();
         })
-    },
+    });
+};
 
-    beforeCompile: function () {
-        var router = this;
-        var attrs = dasherize(this.$options.options || {});
-        var $component = router.$el.querySelector('div');
 
-        Object.keys(attrs).forEach(function (attr) {
-            var value = attrs[attr];
-            $component.setAttribute(attr, value);
-        });
-    },
+Router.prototype.registerRoute = function (path, componentId) {
+    var router = this;
 
-    data: function () {
-        return {
-            currentPage: 'home'
+    page(path, function (ctx, next) {
+        router.onEnter(ctx, componentId)
+    });
+
+    page.exit(path, router.onExit);
+};
+
+
+/**
+ * Sets the current page to the componentId assigned to this path,
+ * and calls the 'enter' hook on the view model instance if it is defined
+ */
+
+Router.prototype.onEnter = function (ctx, componentId) {
+    var router = this,
+        routerVm = this.vm;
+
+    routerVm.currentPage = componentId;
+
+    Vue.nextTick(function () {
+        var pageVm = router.findPageVm();
+
+        router.saveParams(ctx.params, pageVm);
+        router.saveQueries(ctx.query, pageVm);
+
+        if(isFunction(pageVm.enter)) {
+            pageVm.enter(ctx);
         }
-    },
+    })
+};
 
-    methods: require('./methods'),
 
-    template: '<div v-component="{{currentPage}}" v-ref="page"></div>'
+/**
+ * Calls the 'leave' middleware (if it is defined) on the view model
+ * instance of the current page
+ */
 
+Router.prototype.onExit = function (ctx, next) {
+    var pageVm = this.findPageVm();
+
+    if (isFunction(pageVm.leave)) {
+        pageVm.leave(ctx, next)
+    } else {
+        next()
+    }
+};
+
+
+/**
+ * Finds the view model instance of the current page
+ *
+ * @returns {Vue} instance
+ */
+
+Router.prototype.findPageVm = function () {
+    var routerVm = this.vm;
+
+    return find(routerVm._children, function (page) {
+        return page.$options.name === routerVm.currentPage
+    });
+}
+
+Router.prototype.saveQueries = function (query, vm) {
+    vm = vm || this.vm;
+
+    vm.$set('query', {});
+
+    Object.keys(query).forEach(function (key) {
+        vm.query.$add(key, query[key]);
+    });
+};
+
+Router.prototype.saveParams = function (params, vm) {
+    vm = vm || this.vm;
+
+    vm.$set('params', {});
+
+    Object.keys(params).forEach(function (key) {
+        vm.params.$add(key, params[key]);
+    });
 };

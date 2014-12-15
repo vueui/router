@@ -10,7 +10,7 @@ var page = require('page');
  */
 
 exports.install = function (Vue, options) {
-    var definition = require('./src/router')
+    var definition = require('./src/component')
 
     // Grab the options which will be passed to page.js
     options = omit(options || {});
