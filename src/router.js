@@ -2,35 +2,35 @@ var page       = require('page'),
     qs         = require('qs'),
     Vue        = require('vue'),
     find       = require('101/find'),
-    isFunction = require('101/is-function');
+    isFunction = require('101/is-function')
 
 var Router = module.exports = function (vm) {
-    var router = this;
+    var router = this
 
-    router.vm = vm;
+    router.vm = vm
 
     page('*', function (ctx, next) {
         Vue.nextTick(function () {
-            ctx.query = qs.parse(window.location.search.slice(1));
+            ctx.query = qs.parse(window.location.search.slice(1))
 
-            router.saveQueries(ctx.query);
-            router.saveParams(ctx.params);
+            router.saveQueries(ctx.query)
+            router.saveParams(ctx.params)
 
-            next();
+            next()
         })
-    });
-};
+    })
+}
 
 
 Router.prototype.registerRoute = function (path, componentId) {
-    var router = this;
+    var router = this
 
     page(path, function (ctx, next) {
         router.onEnter(ctx, componentId)
-    });
+    })
 
-    page.exit(path, router.onExit);
-};
+    page.exit(path, router.onExit)
+}
 
 
 /**
@@ -40,21 +40,21 @@ Router.prototype.registerRoute = function (path, componentId) {
 
 Router.prototype.onEnter = function (ctx, componentId) {
     var router = this,
-        routerVm = this.vm;
+        routerVm = this.vm
 
-    routerVm.currentPage = componentId;
+    routerVm.currentPage = componentId
 
     Vue.nextTick(function () {
-        var pageVm = router.findPageVm();
+        var pageVm = router.findPageVm()
 
-        router.saveParams(ctx.params, pageVm);
-        router.saveQueries(ctx.query, pageVm);
+        router.saveParams(ctx.params, pageVm)
+        router.saveQueries(ctx.query, pageVm)
 
         if(isFunction(pageVm.enter)) {
-            pageVm.enter(ctx);
+            pageVm.enter(ctx)
         }
     })
-};
+}
 
 
 /**
@@ -63,14 +63,14 @@ Router.prototype.onEnter = function (ctx, componentId) {
  */
 
 Router.prototype.onExit = function (ctx, next) {
-    var pageVm = this.findPageVm();
+    var pageVm = this.findPageVm()
 
     if (isFunction(pageVm.leave)) {
         pageVm.leave(ctx, next)
     } else {
         next()
     }
-};
+}
 
 
 /**
@@ -80,29 +80,29 @@ Router.prototype.onExit = function (ctx, next) {
  */
 
 Router.prototype.findPageVm = function () {
-    var routerVm = this.vm;
+    var routerVm = this.vm
 
     return find(routerVm._children, function (page) {
         return page.$options.name === routerVm.currentPage
-    });
+    })
 }
 
 Router.prototype.saveQueries = function (query, vm) {
-    vm = vm || this.vm;
+    vm = vm || this.vm
 
-    vm.$set('query', {});
+    vm.$set('query', {})
 
     Object.keys(query).forEach(function (key) {
-        vm.query.$add(key, query[key]);
-    });
-};
+        vm.query.$add(key, query[key])
+    })
+}
 
 Router.prototype.saveParams = function (params, vm) {
-    vm = vm || this.vm;
+    vm = vm || this.vm
 
-    vm.$set('params', {});
+    vm.$set('params', {})
 
     Object.keys(params).forEach(function (key) {
-        vm.params.$add(key, params[key]);
-    });
-};
+        vm.params.$add(key, params[key])
+    })
+}
