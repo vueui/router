@@ -1,6 +1,10 @@
 
-var omit = require('101/omit');
-var page = require('page');
+/**
+ * Plugin dependencies
+ */
+
+var page = require('page')
+
 
 /**
  * Register the Router component
@@ -12,12 +16,14 @@ var page = require('page');
 exports.install = function (Vue, options) {
     var definition = require('./src/component')
 
-    // Grab the options which will be passed to page.js
-    options = omit(options || {});
+
+    /**
+     * Start the router when everything is set up
+     */
 
     definition.ready = function () {
-        page.start(options)
+        page.start(options || {})
     }
 
     Vue.component('app-router', definition)
-};
+}

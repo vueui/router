@@ -22,6 +22,8 @@ domReady(function () {
             }
         },
 
+        base: '/dashboard/agonbina',
+
         methods: {
             isAuthenticated: function (ctx, next) {
                 console.log('Is authenticated')

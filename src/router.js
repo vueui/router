@@ -1,4 +1,3 @@
-
 /**
  * Constructor dependencies
  */
@@ -9,6 +8,7 @@ var page       = require('page'),
     find       = require('101/find'),
     pluck      = require('101/pluck'),
     set        = require('101/set'),
+    clone      = require('101/clone'),
     isString   = require('101/is-string'),
     isFunction = require('101/is-function'),
     isObject   = require('101/is-object'),
@@ -25,6 +25,10 @@ var Router = module.exports = function (vm, routes) {
 
     set(router, 'vm', vm)
 
+    /**
+     * Parse the querystring using the `qs` module
+     */
+
     page('*', function (ctx, next) {
         Vue.nextTick(function () {
             var query = qs.parse(window.location.search.slice(1))
@@ -34,51 +38,51 @@ var Router = module.exports = function (vm, routes) {
         })
     })
 
+
+    /**
+     * Set up middleware and callbacks for each route definition
+     */
+
     Object.keys(routes).forEach(function (path) {
-        var definition = pluck(routes, path)
-        router.registerRoute(path, definition)
+        var definition = pluck(routes, path),
+            componentId, title, beforeEnter
+
+        if (isObject(definition)) {
+            title = pluck(definition, 'title')
+            beforeEnter = pluck(definition, 'beforeEnter')
+            componentId = pluck(definition, 'componentId')
+        } else {
+            componentId = definition
+        }
+
+        if (passAny(isString, isArray)(beforeEnter)) {
+            router.registerMiddleware(path, beforeEnter)
+        }
+
+        router.registerRoute(path, componentId, title)
     })
 
 }
 
 
-Router.prototype.registerRoute = function (path, definition) {
+/**
+ * Registers a route definition to update the `currentPage` and document.title
+ *
+ * @param {String} path - The `page.js` path to listen to for changes
+ * @param {String} componentId - The component assigned to be made active when `path` is entered
+ * @param {String} title - The `title` expression to interpolate against the router view model and set to document.title
+ */
+
+Router.prototype.registerRoute = function (path, componentId, title) {
     var router = this,
-        routerVm = this.vm,
-        componentId, title, beforeEnter
-
-    if (isObject(definition)) {
-        title = pluck(definition, 'title')
-        beforeEnter = pluck(definition, 'beforeEnter')
-        componentId = pluck(definition, 'componentId')
-    } else {
-        componentId = definition
-    }
-
-    if (passAny(isString, isArray)(beforeEnter)) {
-        var middleware = isString(beforeEnter)
-            ? [ beforeEnter ]
-            : beforeEnter
-
-        middleware
-            .filter(methodExists)
-            .map(function (methodName) {
-                return pluck(routerVm, methodName)
-            })
-            .forEach(function (method) {
-                page(path, method)
-            });
-
-        function methodExists(method) {
-            return isFunction(pluck(routerVm, method))
-        }
-    }
+        routerVm = this.vm
 
     page(path, function (ctx, next) {
         routerVm.currentPage = componentId
 
         Vue.nextTick(function () {
-            var pageVm = router.findPageVm()
+            var pageVm = router.findPageVm(),
+                enterHook = pageVm.$options.enter
 
             router.saveParams(ctx.params)
             router.saveQueries(ctx.query)
@@ -88,22 +92,60 @@ Router.prototype.registerRoute = function (path, definition) {
                 document.title = routerVm.$interpolate(title)
             }
 
-            if (isFunction(pageVm.enter)) {
-                pageVm.enter(ctx)
+            /**
+             * Call the `enter` method hook and emit the `hook:enter` event
+             */
+
+            if (isFunction(enterHook)) {
+                enterHook(ctx)
             }
+
+            pageVm.$emit('hook:enter', ctx)
         })
     })
 
     page.exit(path, function (ctx, next) {
-        var pageVm = router.findPageVm()
+        var pageVm = router.findPageVm(),
+            leaveHook = pageVm.$options.leave
 
-        if (isFunction(pageVm.leave)) {
-            pageVm.leave(ctx, next)
+        if (isFunction(leaveHook)) {
+            leaveHook(ctx, next)
         } else {
             next()
         }
+
+        pageVm.$emit('hook:leave', ctx)
     })
 }
+
+
+/**
+ * Register any middleware to run before the component assigned to `path` is set to be active
+ *
+ * @param {String} path - The `page.js` path
+ * @param {String|Array} beforeEnter - A string or an array of strings declared as `methods` in the router vm
+ */
+
+Router.prototype.registerMiddleware = function (path, beforeEnter) {
+    var routerVm = this.vm,
+        middleware = isString(beforeEnter)
+            ? [beforeEnter]
+            : beforeEnter
+
+    middleware
+        .filter(methodExists)
+        .map(function (methodName) {
+            return pluck(routerVm, methodName)
+        })
+        .forEach(function (method) {
+            page(path, method)
+        });
+
+    function methodExists(method) {
+        return isFunction(pluck(routerVm, method))
+    }
+}
+
 
 /**
  * Finds the view model instance of the current page
@@ -120,21 +162,23 @@ Router.prototype.findPageVm = function () {
 }
 
 Router.prototype.saveQueries = function (query) {
-    var vm = this.vm
-
-    vm.$set('query', {})
+    var vm = this.vm,
+        parsed = {}
 
     Object.keys(query).forEach(function (key) {
-        vm.query.$add(key, query[key])
+        set(parsed, key, query[key])
     })
+
+    vm.$set('query', parsed)
 }
 
 Router.prototype.saveParams = function (params) {
-    var vm = this.vm
-
-    vm.$set('params', {})
+    var vm = this.vm,
+        parsed = {}
 
     Object.keys(params).forEach(function (key) {
-        vm.params.$add(key, params[key])
+        set(parsed, key, params[key])
     })
+
+    vm.$set('params', parsed)
 }

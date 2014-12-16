@@ -19,21 +19,54 @@ var router = require('vueui-router')
 Vue.use(router, {
     // Page.js options
 })
+```
 
-var Router = Vue.component('ui-router')
+At this point a component with id of ```app-router``` is available for use:
+```js
+var Router = Vue.component('app-router')
 
 var app = new Router({
     routes: {
-        '/dashboard/:username': 'dashboard'
+        '/': 'home',
+        '/dashboard/:username': 'dashboard',
+        '/statistics/:category': {
+            componentId: 'statistics',
+            beforeEnter: [ 'isAuthenticated', 'isAuthorized' ],
+            title: 'Viewing stats for {{params.category}}'
+        }
+    },
+    components: {
+        home: { ... },
+        dashboard: {
+            template: '<h1>Welcome back {{params.username}}!</h1>'
+        },
+        statistics: { ... }
     }
 }).$mount('#app')
 
-
-Vue.component('dashboard', {
-    template: '<h1>Welcome back {{params.username}}!</h1>'
-})
-
 ```
+
+#### Defining a route
+You can define a route in the ```routes``` hash either by specifying ```"/path/:params?query": "componentId"``` or
+with an object containing at least the ```componentId``` property:
+```js
+routes: {
+    'path': {
+        componentId: 'someId',
+        beforeEnter: 'isAuthenticated', // or an array(see above) with 'methods' in the Router instance
+        title: 'An expression $interpolate'd against the routerVm, can use `params` and `query`' // This is set to the document.title
+    }
+}
+```
+
+#### Hooks
+There is two hooks(similar to ```ready, created, etc```) which you can specify on a *page component*:
+ * enter: function(ctx) { }         // Runs on nextTick after the component for this route is activated
+ * leave: function(ctx, next) { }   // Runs on .exit for the given path, you must call ```next``` when
+    you are done to proceed to the next route
+
+There is also the ```hook:enter``` and ```hook:leave``` events which receive the raw page.js ```ctx``` as an argument
+
 
 #### Router ```options``` object
 You can pass an optional ```options``` option when instantiating the Router. These camel cased properties will all added to

@@ -42,7 +42,7 @@ module.exports = {
 
     data: function () {
         return {
-            currentPage: 'home',
+            currentPage: '',
             params     : {},
             query      : {}
         }
