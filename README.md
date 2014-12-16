@@ -35,6 +35,19 @@ var app = new Router({
             title: 'Viewing stats for {{params.category}}'
         }
     },
+    methods: {
+        isAuthenticated: function(ctx, next) {
+            if(!ctx.user) {
+                page('/login')
+            } else {
+                next()
+            }
+        },
+        isAuthorized: function(ctx, next) {
+            // Check if the user is authorized to view these stats
+            next()
+        }
+    },
     components: {
         home: { ... },
         dashboard: {
@@ -51,18 +64,24 @@ You can define a route in the ```routes``` hash either by specifying ```"/path/:
 with an object containing at least the ```componentId``` property:
 ```js
 routes: {
-    'path': {
-        componentId: 'someId',
-        beforeEnter: 'isAuthenticated', // or an array(see above) with 'methods' in the Router instance
-        title: 'An expression $interpolate'd against the routerVm, can use `params` and `query`' // This is set to the document.title
+    '/profile/:username': {
+        componentId: 'profile',
+
+        // Middleware to run before entering this route
+        // Can also be an array(see above) with 'methods' executed in order
+        beforeEnter: 'isAuthenticated',
+
+        // An expression $interpolate'd against the routerVm, you can use `params` and `query` here
+        // The output is assigned to document.title
+        title: '{params.username} profile'
     }
 }
 ```
 
 #### Hooks
 There is two hooks(similar to ```ready, created, etc```) which you can specify on a *page component*:
- * enter: function(ctx) { }         // Runs on nextTick after the component for this route is activated
- * leave: function(ctx, next) { }   // Runs on .exit for the given path, you must call ```next``` when
+ * ***enter: function(ctx) { }***         Runs on nextTick after the component for this route is activated
+ * ***leave: function(ctx, next) { }***   Runs on .exit for the given path, you must call ```next``` when
     you are done to proceed to the next route
 
 There is also the ```hook:enter``` and ```hook:leave``` events which receive the raw page.js ```ctx``` as an argument
