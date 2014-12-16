@@ -86,6 +86,7 @@ There is two hooks(similar to ```ready, created, etc```) which you can specify o
 
 There is also the ```hook:enter``` and ```hook:leave``` events which receive the raw page.js ```ctx``` as an argument
 
+See an example here: [example/dashboard](/example/pages/dashboard.js)
 
 #### Router ```options``` object
 You can pass an optional ```options``` option when instantiating the Router. These camel cased properties will all added to
