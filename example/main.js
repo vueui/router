@@ -1,10 +1,10 @@
 
 var domReady = require('domready');
 var Vue = require('vue');
-var vueUI = require('vue-ui');
+var transitions = require('vueui-transitions');
 var router = require('..');
 
-Vue.use(vueUI);
+Vue.use(transitions, { duration: 500 });
 Vue.use(router);
 
 domReady(function () {
