@@ -1,6 +1,6 @@
 {
   "name": "vueui-router",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Page.js powered simple but powerful router for Vue.js",
   "main": "index.js",
   "repository": {
