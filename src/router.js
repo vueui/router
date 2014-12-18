@@ -8,7 +8,6 @@ var page       = require('page'),
     find       = require('101/find'),
     pluck      = require('101/pluck'),
     set        = require('101/set'),
-    clone      = require('101/clone'),
     isString   = require('101/is-string'),
     isFunction = require('101/is-function'),
     isObject   = require('101/is-object'),
@@ -107,6 +106,11 @@ Router.prototype.registerRoute = function (path, componentId, title) {
     page.exit(path, function (ctx, next) {
         var pageVm = router.findPageVm(),
             leaveHook = pageVm.$options.leave
+
+        // Reset the title to the original 'origin' string
+        if(isString(title)) {
+            document.title = window.location.origin || '';
+        }
 
         if (isFunction(leaveHook)) {
             leaveHook(ctx, next)
