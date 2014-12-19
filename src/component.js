@@ -54,6 +54,6 @@ module.exports = {
         }
     },
 
-    template: '<div v-component="{{currentPage}}" v-with="params: params, query: query"></div>'
+    template: '<div v-component="{{currentPage}}" v-with="params: params, query: query" v-ref="page"></div>'
 
 }

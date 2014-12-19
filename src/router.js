@@ -80,8 +80,8 @@ Router.prototype.registerRoute = function (path, componentId, title) {
         routerVm.currentPage = componentId
 
         Vue.nextTick(function () {
-            var pageVm = router.findPageVm(),
-                enterHook = pageVm.$options.enter
+            var pageVm = routerVm.$.page,
+                enterHook
 
             router.saveParams(ctx.params)
             router.saveQueries(ctx.query)
@@ -95,30 +95,39 @@ Router.prototype.registerRoute = function (path, componentId, title) {
              * Call the `enter` method hook and emit the `hook:enter` event
              */
 
-            if (isFunction(enterHook)) {
-                enterHook(ctx)
-            }
+            if(pageVm) {
+                enterHook = pageVm.$options.entered
 
-            pageVm.$emit('hook:enter', ctx)
+                if (isFunction(enterHook)) {
+                    enterHook(ctx)
+                }
+
+                pageVm.$emit('router:entered', ctx)
+            }
         })
     })
 
     page.exit(path, function (ctx, next) {
-        var pageVm = router.findPageVm(),
-            leaveHook = pageVm.$options.leave
+        var pageVm = routerVm.$.page,
+            leaveHook
 
         // Reset the title to the original 'origin' string
         if(isString(title)) {
             document.title = window.location.origin || '';
         }
 
-        if (isFunction(leaveHook)) {
-            leaveHook(ctx, next)
+        if(pageVm) {
+            leaveHook = pageVm.$options.beforeLeave
+
+            if (isFunction(leaveHook)) {
+                leaveHook(ctx, next)
+            } else {
+                pageVm.$emit('router:beforeLeave', ctx)
+                next()
+            }
         } else {
             next()
         }
-
-        pageVm.$emit('hook:leave', ctx)
     })
 }
 
@@ -148,21 +157,6 @@ Router.prototype.registerMiddleware = function (path, beforeEnter) {
     function methodExists(method) {
         return isFunction(pluck(routerVm, method))
     }
-}
-
-
-/**
- * Finds the view model instance of the current page
- *
- * @returns {Vue} instance
- */
-
-Router.prototype.findPageVm = function () {
-    var routerVm = this.vm
-
-    return find(routerVm._children, function (page) {
-        return page.$options.name === routerVm.currentPage
-    })
 }
 
 Router.prototype.saveQueries = function (query) {
