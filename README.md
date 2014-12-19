@@ -1,8 +1,8 @@
 
-vueui-router 0.1.0
+vueui-router
 ==================
 Page.js powered simple router for Vue.js. Uses a [dynamic component](http://vuejs.org/guide/components.html#Dynamic_Components) to manage
-which page component appears on the page. Works with ```Vue v0.11.1``` and up.
+which page component appears on the page. Works with ```Vue v0.11.5``` and up.
 
 #### Usage
 
@@ -80,11 +80,11 @@ routes: {
 
 #### Hooks
 There is two hooks(similar to ```ready, created, etc```) which you can specify on a *page component*:
- * ***enter: function(ctx) { }***         Runs on nextTick after the component for this route is activated
- * ***leave: function(ctx, next) { }***   Runs on .exit for the given path, you must call ```next``` when
+ * ***entered: function(ctx) { }***         Runs on nextTick after the component for this route is activated
+ * ***beforeLeave: function(ctx, next) { }***   Runs on .exit for the given path, you must call ```next``` when
     you are done to proceed to the next route
 
-There is also the ```hook:enter``` and ```hook:leave``` events which receive the raw page.js ```ctx``` as an argument
+There is also the ```router:entered``` and ```router:beforeLeave``` events which receive the raw page.js ```ctx``` as an argument
 
 See an example here: [example/dashboard](/example/pages/dashboard.js)
 

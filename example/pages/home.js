@@ -2,7 +2,7 @@
 
 module.exports = {
 
-    enter: function (ctx) {
+    entered: function (ctx) {
         console.log('Welcome to the home page');
     },
 

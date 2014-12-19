@@ -2,16 +2,16 @@
 module.exports = {
 
     events: {
-        'hook:leave': function (ctx) {
+        'router:beforeLeave': function (ctx) {
             console.log('hook:leave on dashboard')
         }
     },
 
-    enter: function (context) {
+    entered: function (context) {
         console.log('Entering the dashboard ...');
     },
 
-    leave: function (context, next) {
+    beforeLeave: function (context, next) {
         console.log('Leaving the dashboard...');
         next();
     },
